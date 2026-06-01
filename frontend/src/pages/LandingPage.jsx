@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Particles, { initParticlesEngine } from '@tsparticles/react'
+import { loadSlim } from '@tsparticles/slim'
 import { userAPI } from '../services/api'
 import { useStore } from '../store/useStore'
 
@@ -6,6 +8,13 @@ export default function LandingPage({ onEnter }) {
   const setUser = useStore((s) => s.setUser)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [particlesReady, setParticlesReady] = useState(false)
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine)
+    }).then(() => setParticlesReady(true))
+  }, [])
 
   const handleCreateUser = async () => {
     setLoading(true)
@@ -23,6 +32,27 @@ export default function LandingPage({ onEnter }) {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden scanlines">
+      {particlesReady && (
+        <Particles
+          className="absolute inset-0"
+          options={{
+            background: { color: { value: '#080510' } },
+            particles: {
+              number: { value: 80 },
+              color: { value: '#a855f7' },
+              links: {
+                enable: true,
+                color: '#a855f7',
+                opacity: 0.15,
+                distance: 150,
+              },
+              move: { enable: true, speed: 0.8 },
+              opacity: { value: 0.3 },
+              size: { value: { min: 1, max: 2 } },
+            },
+          }}
+        />
+      )}
       {/* Background grid */}
       <div className="absolute inset-0"
         style={{

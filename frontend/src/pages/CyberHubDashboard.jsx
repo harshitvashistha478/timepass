@@ -14,7 +14,6 @@ export default function CyberHubDashboard() {
   const addActivity = useStore((s) => s.addActivity)
 
   useEffect(() => {
-
     const loadAgents = async () => {
       try {
         const { data } = await hubAPI.getAllAgents()
@@ -25,15 +24,14 @@ export default function CyberHubDashboard() {
     }
 
     loadAgents()
-
     addActivity('Cyber Hub initialized.')
 
     const interval = setInterval(() => {
-      if (!isResearching) loadAgents()  // skip refresh during active mission
+      const isResearching = useStore.getState().isResearching  // read directly from store
+      if (!isResearching) loadAgents()
     }, 5000)
 
     return () => clearInterval(interval)
-
   }, [])
 
   return (

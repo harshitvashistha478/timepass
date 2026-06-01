@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
-const HUB_POSITION = { x: 140, y: 350 }       
-const RESEARCH_POSITION = { x: 780, y: 320 } 
+const HUB_POSITION = { x: 140, y: 360 }
+const RESEARCH_POSITION = { x: 800, y: 310 }
 
 export const useStore = create((set, get) => ({
 
@@ -13,26 +13,32 @@ export const useStore = create((set, get) => ({
   agents: [],
 
   setAgents: (agents) => {
-    const currentAgents = get().agents  // get existing state
+    const current = get().agents
     const isResearching = get().isResearching
 
-    // If a mission is active, don't reset positions
+    // Never overwrite positions during an active mission
     if (isResearching) return
 
     const enhancedAgents = agents.map((agent, index) => {
-      const existing = currentAgents.find(a => a.id === agent.id)
+      const existing = current.find(a => a.id === agent.id)
+      const col = index % 3
+      const row = Math.floor(index / 3)
+      const spawnX = HUB_POSITION.x + col * 38
+      const spawnY = HUB_POSITION.y + row * 48
+
       return {
         ...agent,
-        x: existing?.x ?? HUB_POSITION.x + (index % 3) * 30,
-        y: existing?.y ?? HUB_POSITION.y + Math.floor(index / 3) * 30,
-        targetX: existing?.targetX ?? HUB_POSITION.x,
-        targetY: existing?.targetY ?? HUB_POSITION.y,
-        currentZone: existing?.currentZone ?? 'hub',
-        isMoving: existing?.isMoving ?? false,
-        isWorking: existing?.isWorking ?? false,
+        x:            existing?.x            ?? spawnX,
+        y:            existing?.y            ?? spawnY,
+        targetX:      existing?.targetX      ?? spawnX,
+        targetY:      existing?.targetY      ?? spawnY,
+        currentZone:  existing?.currentZone  ?? 'hub',
+        isMoving:     existing?.isMoving     ?? false,
+        isWorking:    existing?.isWorking    ?? false,
         animationState: existing?.animationState ?? 'idle'
       }
     })
+
     set({ agents: enhancedAgents })
   },
 
@@ -40,10 +46,8 @@ export const useStore = create((set, get) => ({
     set((state) => ({
       agents: state.agents.map((agent, index) => ({
         ...agent,
-
-        targetX: RESEARCH_POSITION.x + (index % 3) * 40,
-        targetY: RESEARCH_POSITION.y + Math.floor(index / 3) * 40,
-
+        targetX: RESEARCH_POSITION.x + (index % 3) * 42,
+        targetY: RESEARCH_POSITION.y + Math.floor(index / 3) * 50,
         currentZone: 'moving',
         isMoving: true,
         isWorking: false,
@@ -68,10 +72,8 @@ export const useStore = create((set, get) => ({
     set((state) => ({
       agents: state.agents.map((agent, index) => ({
         ...agent,
-
-        targetX: HUB_POSITION.x + (index % 3) * 30,
-        targetY: HUB_POSITION.y + Math.floor(index / 3) * 30,
-
+        targetX: HUB_POSITION.x + (index % 3) * 38,
+        targetY: HUB_POSITION.y + Math.floor(index / 3) * 48,
         currentZone: 'returning',
         isMoving: true,
         isWorking: false,
@@ -82,8 +84,11 @@ export const useStore = create((set, get) => ({
 
   finishReturn: () => {
     set((state) => ({
-      agents: state.agents.map((agent) => ({
+      agents: state.agents.map((agent, index) => ({
         ...agent,
+        // Restore exact spawn position so they don't drift
+        targetX: HUB_POSITION.x + (index % 3) * 38,
+        targetY: HUB_POSITION.y + Math.floor(index / 3) * 48,
         currentZone: 'hub',
         isMoving: false,
         isWorking: false,
