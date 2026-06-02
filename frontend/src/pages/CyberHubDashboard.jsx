@@ -1,20 +1,17 @@
 import { useEffect } from 'react'
-
 import { useStore } from '../store/useStore'
 import { hubAPI } from '../services/api'
-
 import SimulationWorld from '../components/simulation/SimulationWorld'
-import ResearchAreaPanel from '../components/ResearchAreaPanel'
+import OperationsPanel from '../components/OperationsPanel'
 import ActivityLog from '../components/ActivityLog'
 
 export default function CyberHubDashboard() {
-
-  const user = useStore((s) => s.user)
-  const setAgents = useStore((s) => s.setAgents)
-  const addActivity = useStore((s) => s.addActivity)
+  const user       = useStore(s => s.user)
+  const setAgents  = useStore(s => s.setAgents)
+  const addActivity = useStore(s => s.addActivity)
 
   useEffect(() => {
-    const loadAgents = async () => {
+    const load = async () => {
       try {
         const { data } = await hubAPI.getAllAgents()
         setAgents(data)
@@ -23,55 +20,62 @@ export default function CyberHubDashboard() {
       }
     }
 
-    loadAgents()
-    addActivity('Cyber Hub initialized.')
+    load()
+    addActivity('Cyber Hub online.')
 
     const interval = setInterval(() => {
-      const isResearching = useStore.getState().isResearching  // read directly from store
-      if (!isResearching) loadAgents()
+      // Only refresh agents when no mission is running
+      if (!useStore.getState().isActive) load()
     }, 5000)
 
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#050a0f] text-white overflow-hidden">
+    <div className="min-h-screen text-white overflow-hidden"
+      style={{ background: '#040210', fontFamily: '"JetBrains Mono", monospace' }}>
 
-      {/* TopBar */}
-      <header className="h-16 border-b border-violet-500/20 flex items-center justify-between px-6">
-
-        <div>
-          <div className="text-violet-400 font-black text-2xl tracking-[0.4em]">
-            CYBER HUB
-          </div>
+      {/* Top bar */}
+      <header className="h-14 flex items-center justify-between px-6"
+        style={{
+          background: '#07031a',
+          borderBottom: '1px solid rgba(0,229,255,0.12)',
+        }}>
+        <div className="font-black text-xl tracking-[0.45em]"
+          style={{ color: '#00e5ff', fontFamily: '"Orbitron", monospace',
+                   textShadow: '0 0 20px rgba(0,229,255,0.4)' }}>
+          CYBER HUB
         </div>
-
-        <div className="text-sm text-violet-200">
+        <div className="text-xs" style={{ color: 'rgba(0,229,255,0.45)' }}>
           Operator: {user?.name}
         </div>
-
       </header>
 
-      <div className="grid grid-cols-[1fr_350px] h-[calc(100vh-64px)]">
+      {/* Main layout */}
+      <div className="grid grid-cols-[1fr_380px] h-[calc(100vh-56px)]">
 
-        {/* LEFT */}
+        {/* Left — simulation world */}
         <div className="p-4 overflow-hidden">
           <SimulationWorld />
         </div>
 
-        {/* RIGHT */}
-        <div className="border-l border-violet-500/20 overflow-y-auto">
+        {/* Right — panel + activity log */}
+        <div className="flex flex-col overflow-hidden"
+          style={{ borderLeft: '1px solid rgba(0,229,255,0.1)', background: '#06021a' }}>
 
-          <ResearchAreaPanel />
+          {/* Operations panel takes most height */}
+          <div className="flex-1 overflow-hidden min-h-0">
+            <OperationsPanel />
+          </div>
 
-          <div className="border-t border-violet-500/10">
+          {/* Activity log at bottom, scrollable, max height */}
+          <div className="max-h-44 overflow-y-auto flex-shrink-0"
+            style={{ borderTop: '1px solid rgba(0,229,255,0.08)' }}>
             <ActivityLog />
           </div>
 
         </div>
-
       </div>
-
     </div>
   )
 }

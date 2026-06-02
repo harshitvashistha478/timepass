@@ -1,123 +1,195 @@
 import { create } from 'zustand'
 
-const HUB_POSITION = { x: 140, y: 360 }
-const RESEARCH_POSITION = { x: 800, y: 310 }
+// These positions match exactly the SimulationWorld canvas coordinates
+// Canvas is 1200x560, ground at y=490
+// Agent walk y = 468 (ground level feet position)
+const POSITIONS = {
+  hub:      { x: 120,  y: 468 },   // center of Agent Hub building
+  enquiry:  { x: 562,  y: 468 },   // center of Enquiry Dept building
+  research: { x: 928,  y: 468 },   // center of Research Lab building
+  dev:      { x: 1100, y: 468 },   // center of Dev Hub building
+}
 
 export const useStore = create((set, get) => ({
 
-  // USER
+  // ─── USER ────────────────────────────────────────────────────────────────
   user: null,
   setUser: (user) => set({ user }),
 
-  // AGENTS
+  // ─── AGENTS ──────────────────────────────────────────────────────────────
   agents: [],
 
   setAgents: (agents) => {
     const current = get().agents
-    const isResearching = get().isResearching
+    if (get().isActive) return   // never overwrite positions mid-mission
 
-    // Never overwrite positions during an active mission
-    if (isResearching) return
-
-    const enhancedAgents = agents.map((agent, index) => {
+    const enhanced = agents.map((agent, i) => {
       const existing = current.find(a => a.id === agent.id)
-      const col = index % 3
-      const row = Math.floor(index / 3)
-      const spawnX = HUB_POSITION.x + col * 38
-      const spawnY = HUB_POSITION.y + row * 48
+      const col = i % 3
+      const row = Math.floor(i / 3)
+      const spawnX = POSITIONS.hub.x + col * 32 - 32
+      const spawnY = POSITIONS.hub.y - row * 22
 
       return {
         ...agent,
-        x:            existing?.x            ?? spawnX,
-        y:            existing?.y            ?? spawnY,
-        targetX:      existing?.targetX      ?? spawnX,
-        targetY:      existing?.targetY      ?? spawnY,
-        currentZone:  existing?.currentZone  ?? 'hub',
-        isMoving:     existing?.isMoving     ?? false,
-        isWorking:    existing?.isWorking    ?? false,
-        animationState: existing?.animationState ?? 'idle'
+        x:             existing?.x             ?? spawnX,
+        y:             existing?.y             ?? spawnY,
+        targetX:       existing?.targetX       ?? spawnX,
+        targetY:       existing?.targetY       ?? spawnY,
+        currentZone:   existing?.currentZone   ?? 'hub',
+        isMoving:      existing?.isMoving      ?? false,
+        isWorking:     existing?.isWorking     ?? false,
+        animationState: existing?.animationState ?? 'idle',
       }
     })
-
-    set({ agents: enhancedAgents })
+    set({ agents: enhanced })
   },
 
-  moveAgentsToResearch: () => {
-    set((state) => ({
-      agents: state.agents.map((agent, index) => ({
+  // Step 1 — all agents walk from Hub → Enquiry Dept
+  moveAgentsToEnquiry: () => {
+    set(state => ({
+      agents: state.agents.map((agent, i) => ({
         ...agent,
-        targetX: RESEARCH_POSITION.x + (index % 3) * 42,
-        targetY: RESEARCH_POSITION.y + Math.floor(index / 3) * 50,
-        currentZone: 'moving',
-        isMoving: true,
-        isWorking: false,
-        animationState: 'walking'
+        targetX: POSITIONS.enquiry.x + (i % 3) * 28 - 28,
+        targetY: POSITIONS.enquiry.y - Math.floor(i / 3) * 22,
+        currentZone:   'toEnquiry',
+        isMoving:      true,
+        isWorking:     false,
+        animationState: 'walking',
       }))
     }))
   },
 
+  // Step 2 — agents arrived at Enquiry, now routing
+  setAgentsRouting: () => {
+    set(state => ({
+      agents: state.agents.map(agent => ({
+        ...agent,
+        currentZone:   'enquiry',
+        isMoving:      false,
+        isWorking:     true,
+        animationState: 'working',
+      }))
+    }))
+  },
+
+  // Step 3 — dispatch agents to hub(s) after routing decision
+  // hubs = ['research'] | ['developer'] | ['research', 'developer']
+  dispatchAgents: (hubs) => {
+    set(state => {
+      const total = state.agents.length
+
+      if (hubs.length === 1) {
+        const pos  = hubs[0] === 'research' ? POSITIONS.research : POSITIONS.dev
+        const zone = hubs[0] === 'research' ? 'toResearch' : 'toDev'
+        return {
+          agents: state.agents.map((agent, i) => ({
+            ...agent,
+            targetX: pos.x + (i % 3) * 30 - 30,
+            targetY: pos.y - Math.floor(i / 3) * 22,
+            currentZone:   zone,
+            isMoving:      true,
+            isWorking:     false,
+            animationState: 'walking',
+          }))
+        }
+      }
+
+      // Split: first half → research, second half → dev
+      const half = Math.ceil(total / 2)
+      return {
+        agents: state.agents.map((agent, i) => {
+          const goResearch  = i < half
+          const pos         = goResearch ? POSITIONS.research : POSITIONS.dev
+          const zone        = goResearch ? 'toResearch' : 'toDev'
+          const localIdx    = goResearch ? i : i - half
+          return {
+            ...agent,
+            targetX: pos.x + (localIdx % 3) * 30 - 30,
+            targetY: pos.y - Math.floor(localIdx / 3) * 22,
+            currentZone:   zone,
+            isMoving:      true,
+            isWorking:     false,
+            animationState: 'walking',
+          }
+        })
+      }
+    })
+  },
+
+  // Step 4 — agents reached their hub, start working
   setAgentsWorking: () => {
-    set((state) => ({
-      agents: state.agents.map((agent) => ({
+    set(state => ({
+      agents: state.agents.map(agent => ({
         ...agent,
-        currentZone: 'research',
-        isMoving: false,
-        isWorking: true,
-        animationState: 'working'
+        currentZone: agent.currentZone === 'toResearch' ? 'research'
+                    : agent.currentZone === 'toDev'      ? 'dev'
+                    : agent.currentZone,
+        isMoving:      false,
+        isWorking:     true,
+        animationState: 'working',
       }))
     }))
   },
 
+  // Step 5 — all agents walk back to Hub
   returnAgentsToHub: () => {
-    set((state) => ({
-      agents: state.agents.map((agent, index) => ({
+    set(state => ({
+      agents: state.agents.map((agent, i) => ({
         ...agent,
-        targetX: HUB_POSITION.x + (index % 3) * 38,
-        targetY: HUB_POSITION.y + Math.floor(index / 3) * 48,
-        currentZone: 'returning',
-        isMoving: true,
-        isWorking: false,
-        animationState: 'walking'
+        targetX: POSITIONS.hub.x + (i % 3) * 32 - 32,
+        targetY: POSITIONS.hub.y - Math.floor(i / 3) * 22,
+        currentZone:   'returning',
+        isMoving:      true,
+        isWorking:     false,
+        animationState: 'walking',
       }))
     }))
   },
 
+  // Step 6 — arrived back, reset
   finishReturn: () => {
-    set((state) => ({
-      agents: state.agents.map((agent, index) => ({
+    set(state => ({
+      agents: state.agents.map((agent, i) => ({
         ...agent,
-        // Restore exact spawn position so they don't drift
-        targetX: HUB_POSITION.x + (index % 3) * 38,
-        targetY: HUB_POSITION.y + Math.floor(index / 3) * 48,
-        currentZone: 'hub',
-        isMoving: false,
-        isWorking: false,
-        animationState: 'idle'
+        targetX: POSITIONS.hub.x + (i % 3) * 32 - 32,
+        targetY: POSITIONS.hub.y - Math.floor(i / 3) * 22,
+        currentZone:   'hub',
+        isMoving:      false,
+        isWorking:     false,
+        animationState: 'idle',
       }))
     }))
   },
 
-  // RESEARCH
-  activeSession: null,
-  setActiveSession: (session) => set({ activeSession: session }),
+  // ─── SESSION STATE ────────────────────────────────────────────────────────
+  isActive: false,
+  setIsActive: (v) => set({ isActive: v }),
+
+  activeHubs: [],          // ['research'] | ['developer'] | ['research','developer']
+  setActiveHubs: (hubs) => set({ activeHubs: hubs }),
+
+  enquirySessionId: null,
+  setEnquirySessionId: (id) => set({ enquirySessionId: id }),
+
+  researchSessionId: null,
+  setResearchSessionId: (id) => set({ researchSessionId: id }),
+
+  devSessionId: null,
+  setDevSessionId: (id) => set({ devSessionId: id }),
 
   researchResult: null,
-  setResearchResult: (result) => set({ researchResult: result }),
+  setResearchResult: (r) => set({ researchResult: r }),
 
-  isResearching: false,
-  setIsResearching: (v) => set({ isResearching: v }),
+  devResult: null,
+  setDevResult: (r) => set({ devResult: r }),
 
-  // ACTIVITY
+  // ─── ACTIVITY LOG ────────────────────────────────────────────────────────
   activityLog: [],
-
-  addActivity: (message) => set((state) => ({
+  addActivity: (message) => set(state => ({
     activityLog: [
-      {
-        id: Date.now(),
-        message,
-        time: new Date().toLocaleTimeString()
-      },
+      { id: Date.now(), message, time: new Date().toLocaleTimeString() },
       ...state.activityLog.slice(0, 19)
     ]
-  }))
+  })),
 }))

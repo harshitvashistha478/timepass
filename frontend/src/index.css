@@ -5,20 +5,21 @@
 * { box-sizing: border-box; }
 
 body {
-  background-color: #080510;  /* was #050a0f */
-  color: #c9b8e8;             /* was #a8c8e8 */
+  background-color: #020b14;  /* was #050a0f */
+  color: #a8e6f0;             /* was #a8c8e8 */
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #080510; }
-::-webkit-scrollbar-thumb { background: #2a1a45; }           /* was #0d2137 */
-::-webkit-scrollbar-thumb:hover { background: #a855f733; }
+::-webkit-scrollbar-thumb { background: #0a2535; }           /* was #0d2137 */
+::-webkit-scrollbar-thumb:hover { background: #00e5ff33; }
 
 /* Glowing border utility */
 .glow-border {
-  border: 1px solid #a855f733;                                /* was #a855f733 */
-  box-shadow: 0 0 8px #a855f711, inset 0 0 8px #a855f708;    /* was cyan */
+  border: 1px solid #00e5ff33;                        /* was #00e5ff33 */
+  box-shadow: 0 0 8px #00e5ff11, inset 0 0 8px #00e5ff08;
+  /* was cyan */
 }
 
 /* Grid scan line effect */
@@ -30,8 +31,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(168, 85, 247, 0.01) 2px,
-    rgba(168, 85, 247, 0.01) 4px
+    rgba(0, 229, 255, 0.01) 2px,
+    rgba(0, 229, 255, 0.01) 4px
   );
   pointer-events: none;
 }
@@ -44,7 +45,7 @@ body {
 .cursor::after {
   content: '▌';
   animation: blink 1s step-end infinite;
-  color: #a855f7;
+  color: #00e5ff;
 }
 
 
@@ -68,9 +69,9 @@ body {
 
 .cyber-glow {
   box-shadow:
-    0 0 10px rgba(168,85,247,0.2),
-    0 0 20px rgba(168,85,247,0.15),
-    0 0 30px rgba(168,85,247,0.1);
+    0 0 10px rgba(0,229,255,0.25),
+    0 0 20px rgba(0,229,255,0.18),
+    0 0 40px rgba(0,229,255,0.1);
 }
 
 @keyframes scanDown {

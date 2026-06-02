@@ -13,7 +13,7 @@ export default function MovementPath({ isResearching }) {
 
       {/* Base road — always visible, dim */}
       <line x1="280" y1="330" x2="720" y2="300"
-        stroke="rgba(168,85,247,0.1)"
+        stroke="rgba(0,229,255,0.1)"
         strokeWidth="8"
         strokeLinecap="round"
       />
@@ -21,7 +21,7 @@ export default function MovementPath({ isResearching }) {
       {/* Animated flow line — only when researching */}
       {isResearching && (
         <line x1="280" y1="330" x2="720" y2="300"
-          stroke="rgba(168,85,247,0.7)"
+          stroke="rgba(0,229,255,0.7)"
           strokeWidth="3"
           strokeDasharray="16 12"
           strokeLinecap="round"

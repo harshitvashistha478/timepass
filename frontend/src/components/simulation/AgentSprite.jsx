@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 const COLORS = {
   junior: '#34d399',   // green
   mid:    '#60a5fa',   // blue
-  senior: '#a855f7',   // purple
+  senior: '#00e5ff',   // purple
   expert: '#fbbf24',   // gold
 }
 
@@ -70,7 +70,7 @@ function MinionBody({ color, animationState, size = 1 }) {
 
 export default function AgentSprite({ agent, static: isStatic = false, size = 'sm' }) {
 
-  const color = COLORS[agent.skill_level] || '#a855f7'
+  const color = COLORS[agent.skill_level] || '#00e5ff'
   const isWalking = agent.animationState === 'walking'
 
   const sprite = (
