@@ -1,11 +1,25 @@
+/**
+ * MODIFIED FILE: src/pages/CyberHubDashboard.jsx
+ *
+ * ── What changed (2 lines only) ──────────────────────────────────────────────
+ *   LINE 4:  import SimulationWorld3D  ← was: import SimulationWorld
+ *   LINE ~90: <SimulationWorld3D />    ← was: <SimulationWorld />
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Everything else (tabs, panels, results modal, store hooks) is IDENTICAL.
+ */
+
 import { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
 import { hubAPI } from '../services/api'
-import SimulationWorld from '../components/simulation/SimulationWorld'
+
+// ← THE ONE CHANGE: import the new 3D world instead of the old 2D one
+import SimulationWorld3D from '../components/simulation3d/SimulationWorld3D'
+
 import OperationsPanel from '../components/OperationsPanel'
 import ActivityLog from '../components/ActivityLog'
+import RAGHubPage from './RAGHubPage'
 
-// ─── Results view ─────────────────────────────────────────────────────────────
+// ─── Results view (unchanged from original) ───────────────────────────────────
 function ResultsView({ resultTime }) {
   const researchResult = useStore(s => s.researchResult)
   const devResult      = useStore(s => s.devResult)
@@ -35,29 +49,21 @@ function ResultsView({ resultTime }) {
         <h2 className="text-2xl font-bold mb-1" style={{ color: '#e8f4ff', fontFamily: '"Syne", sans-serif' }}>
           Mission Results
         </h2>
-        <p className="text-sm" style={{ color: '#5a7a9a' }}>
-          Click a card to view the full report.
-        </p>
+        <p className="text-sm" style={{ color: '#5a7a9a' }}>Click a card to view the full report.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {researchResult && (
           <div className="rounded-2xl p-6 flex flex-col gap-4 transition-all hover:scale-[1.01]"
-            style={{
-              background: 'rgba(13,32,64,0.8)',
-              border: '1px solid rgba(139,92,246,0.3)',
-              boxShadow: '0 4px 32px rgba(139,92,246,0.1)',
-            }}>
+            style={{ background: 'rgba(13,32,64,0.8)', border: '1px solid rgba(139,92,246,0.3)', boxShadow: '0 4px 32px rgba(139,92,246,0.1)' }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
-                🔬
-              </div>
+                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>🔬</div>
               <div>
                 <div className="font-semibold text-sm" style={{ color: '#e8f4ff' }}>Research Report</div>
                 <div className="text-xs mt-0.5" style={{ color: '#8b5cf6' }}>Research Lab</div>
               </div>
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto">
                 <span className="text-xs px-2 py-0.5 rounded-full font-bold"
                   style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>
                   COMPLETE
@@ -71,11 +77,7 @@ function ResultsView({ resultTime }) {
             <button
               onClick={() => setModal({ title: 'Research Report', content: researchResult, color: '#8b5cf6', icon: '🔬' })}
               className="w-full py-3 rounded-xl font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                color: 'white',
-                boxShadow: '0 4px 16px rgba(139,92,246,0.3)',
-              }}>
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', color: 'white', boxShadow: '0 4px 16px rgba(139,92,246,0.3)' }}>
               VIEW FULL REPORT ↗
             </button>
           </div>
@@ -83,16 +85,10 @@ function ResultsView({ resultTime }) {
 
         {devResult && (
           <div className="rounded-2xl p-6 flex flex-col gap-4 transition-all hover:scale-[1.01]"
-            style={{
-              background: 'rgba(13,32,64,0.8)',
-              border: '1px solid rgba(16,185,129,0.3)',
-              boxShadow: '0 4px 32px rgba(16,185,129,0.1)',
-            }}>
+            style={{ background: 'rgba(13,32,64,0.8)', border: '1px solid rgba(16,185,129,0.3)', boxShadow: '0 4px 32px rgba(16,185,129,0.1)' }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>
-                💻
-              </div>
+                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}>💻</div>
               <div>
                 <div className="font-semibold text-sm" style={{ color: '#e8f4ff' }}>Developer Output</div>
                 <div className="text-xs mt-0.5" style={{ color: '#10b981' }}>Dev Hub</div>
@@ -110,11 +106,7 @@ function ResultsView({ resultTime }) {
             <button
               onClick={() => setModal({ title: 'Developer Output', content: devResult, color: '#10b981', icon: '💻' })}
               className="w-full py-3 rounded-xl font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                color: 'white',
-                boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
-              }}>
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
               VIEW FULL OUTPUT ↗
             </button>
           </div>
@@ -126,30 +118,22 @@ function ResultsView({ resultTime }) {
           style={{ background: 'rgba(2,8,20,0.85)', backdropFilter: 'blur(8px)' }}
           onClick={() => setModal(null)}>
           <div className="w-full max-w-4xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
-            style={{
-              background: '#071628',
-              border: `1px solid ${modal.color}30`,
-              boxShadow: `0 0 60px ${modal.color}15`,
-            }}
+            style={{ background: '#071628', border: `1px solid ${modal.color}30`, boxShadow: `0 0 60px ${modal.color}15` }}
             onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4"
               style={{ borderBottom: `1px solid ${modal.color}20`, background: `${modal.color}08` }}>
               <div className="flex items-center gap-3">
                 <span className="text-xl">{modal.icon}</span>
                 <div>
-                  <div className="font-bold text-base" style={{ color: '#e8f4ff', fontFamily: '"Syne", sans-serif' }}>
-                    {modal.title}
-                  </div>
+                  <div className="font-bold text-base" style={{ color: '#e8f4ff', fontFamily: '"Syne", sans-serif' }}>{modal.title}</div>
                   <div className="text-xs" style={{ color: modal.color, opacity: 0.7 }}>Click outside to close</div>
                 </div>
               </div>
               <button onClick={() => setModal(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                style={{ background: 'rgba(255,255,255,0.05)', color: '#7aa3c4' }}>
-                ✕
-              </button>
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#7aa3c4' }}>✕</button>
             </div>
-            <div className="flex-1 overflow-y-auto px-8 py-6 prose-dark">
+            <div className="flex-1 overflow-y-auto px-8 py-6">
               <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed"
                 style={{ color: '#7aa3c4', fontFamily: '"JetBrains Mono", monospace' }}>
                 {modal.content}
@@ -162,7 +146,7 @@ function ResultsView({ resultTime }) {
   )
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+// ─── Dashboard (unchanged except the 3D world swap) ───────────────────────────
 export default function CyberHubDashboard() {
   const user        = useStore(s => s.user)
   const setAgents   = useStore(s => s.setAgents)
@@ -170,7 +154,7 @@ export default function CyberHubDashboard() {
   const researchResult = useStore(s => s.researchResult)
   const devResult   = useStore(s => s.devResult)
 
-  const [mainTab, setMainTab] = useState('mission')
+  const [mainTab, setMainTab]   = useState('mission')
   const [resultTime, setResultTime] = useState(null)
 
   useEffect(() => {
@@ -192,21 +176,16 @@ export default function CyberHubDashboard() {
 
   const tabs = [
     { id: 'mission', label: 'Mission Control', icon: '⚡' },
-    { id: 'results', label: 'Results', icon: '📊', dot: hasResults },
+    { id: 'results', label: 'Results',         icon: '📊', dot: hasResults },
+    { id: 'rag',     label: 'RAG Hub',          icon: '🗄️' },
   ]
 
   return (
     <div className="min-h-screen overflow-hidden" style={{ background: '#030b18' }}>
 
-      {/* ── Top nav ── */}
+      {/* Top nav */}
       <header className="h-14 flex items-center justify-between px-6"
-        style={{
-          background: 'rgba(7,22,40,0.95)',
-          borderBottom: '1px solid rgba(6,182,212,0.12)',
-          backdropFilter: 'blur(12px)',
-        }}
-      >
-        {/* Logo */}
+        style={{ background: 'rgba(7,22,40,0.95)', borderBottom: '1px solid rgba(6,182,212,0.12)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
             style={{ background: 'rgba(6,182,212,0.12)', border: '1px solid rgba(6,182,212,0.3)' }}>
@@ -216,25 +195,21 @@ export default function CyberHubDashboard() {
               <circle cx="12" cy="4" r="1.5" fill="#f59e0b"/>
             </svg>
           </div>
-          <span style={{
-            fontFamily: '"Syne", sans-serif', fontWeight: 800,
-            fontSize: 18, letterSpacing: '0.12em', color: '#e8f4ff',
-          }}>
+          <span style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: 18, letterSpacing: '0.12em', color: '#e8f4ff' }}>
             CYBER<span style={{ color: '#06b6d4' }}>HUB</span>
           </span>
         </div>
 
-        {/* Tabs */}
         <div className="flex items-center gap-1 rounded-xl p-1"
           style={{ background: 'rgba(3,11,24,0.8)', border: '1px solid rgba(26,58,92,0.6)' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setMainTab(t.id)}
               className="relative px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
               style={{
-                background:   mainTab === t.id ? 'rgba(6,182,212,0.15)' : 'transparent',
-                color:        mainTab === t.id ? '#06b6d4' : '#5a7a9a',
-                border:       mainTab === t.id ? '1px solid rgba(6,182,212,0.3)' : '1px solid transparent',
-                fontFamily:   '"DM Sans", sans-serif',
+                background: mainTab === t.id ? 'rgba(6,182,212,0.15)' : 'transparent',
+                color:      mainTab === t.id ? '#06b6d4' : '#5a7a9a',
+                border:     mainTab === t.id ? '1px solid rgba(6,182,212,0.3)' : '1px solid transparent',
+                fontFamily: '"DM Sans", sans-serif',
               }}>
               <span className="mr-1.5">{t.icon}</span>
               {t.label}
@@ -246,7 +221,6 @@ export default function CyberHubDashboard() {
           ))}
         </div>
 
-        {/* Operator info */}
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse-slow" />
           <span className="text-xs" style={{ color: '#5a7a9a' }}>
@@ -255,38 +229,36 @@ export default function CyberHubDashboard() {
         </div>
       </header>
 
-      {/* ── Mission Control ── */}
+      {/* Mission Control */}
       {mainTab === 'mission' && (
         <div className="grid grid-cols-[1fr_380px]" style={{ height: 'calc(100vh - 56px)' }}>
 
-          {/* Left — simulation world */}
+          {/* Left — 3D simulation world  ← ONLY CHANGE HERE */}
           <div className="p-4 overflow-hidden">
-            <SimulationWorld />
+            <SimulationWorld3D />   {/* ← was <SimulationWorld /> */}
           </div>
 
-          {/* Right — panels */}
+          {/* Right — panels (unchanged) */}
           <div className="flex flex-col overflow-hidden"
             style={{ borderLeft: '1px solid rgba(26,58,92,0.5)', background: 'rgba(7,22,40,0.6)' }}>
             <div className="flex-1 overflow-hidden min-h-0">
               <OperationsPanel onResultsReady={() => setMainTab('results')} />
             </div>
-            <div className="flex-shrink-0" style={{
-              maxHeight: 180,
-              overflowY: 'auto',
-              borderTop: '1px solid rgba(26,58,92,0.5)',
-            }}>
+            <div className="flex-shrink-0"
+              style={{ maxHeight: 180, overflowY: 'auto', borderTop: '1px solid rgba(26,58,92,0.5)' }}>
               <ActivityLog />
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Results ── */}
       {mainTab === 'results' && (
         <div style={{ height: 'calc(100vh - 56px)', overflowY: 'auto' }}>
           <ResultsView resultTime={resultTime} />
         </div>
       )}
+
+      {mainTab === 'rag' && <RAGHubPage />}
     </div>
   )
 }

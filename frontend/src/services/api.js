@@ -28,6 +28,32 @@ export const developerAPI = {
   getHistory: (userId) => api.get(`/developer/history/${userId}`)
 }
 
+
+export const ragAPI = {
+  // Sessions
+  createSession:  (userId, name)       => api.post('/rag/sessions', { user_id: userId, name }),
+  listSessions:   (userId)             => api.get(`/rag/sessions/user/${userId}`),
+  getSession:     (sessionId)          => api.get(`/rag/sessions/${sessionId}`),
+  deleteSession:  (sessionId)          => api.delete(`/rag/sessions/${sessionId}`),
+
+  // Documents
+  uploadDocuments: (sessionId, files) => {
+    const form = new FormData()
+    files.forEach(f => form.append('files', f))
+    return api.post(`/rag/sessions/${sessionId}/upload`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  listDocuments:  (sessionId)          => api.get(`/rag/sessions/${sessionId}/documents`),
+  getDocument:    (sessionId, docId)   => api.get(`/rag/sessions/${sessionId}/documents/${docId}`),
+  deleteDocument: (sessionId, docId)   => api.delete(`/rag/sessions/${sessionId}/documents/${docId}`),
+
+  // Chat
+  chat:        (sessionId, query)   => api.post(`/rag/sessions/${sessionId}/chat`, { query }),
+  getMessages: (sessionId)          => api.get(`/rag/sessions/${sessionId}/messages`),
+}
+
+
 export const hubAPI = {
   getAllAgents: () => api.get('/hub/agents')
 }
